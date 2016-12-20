@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="JupiterPi">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JupiterPi</title>
+
+<script src="js/jquery.min.js"></script>
+<script src="js/angular.js"></script>
+<script>
+  var app = angular.module('JupiterPi', []);
+  app.controller('Controller', function($scope, $http) {
+	 $scope.users = [];
+	 $http.get('hello/api')
+	      .then( function(response) {
+	    	 $scope.users = response.data; 
+	      });
+	 $scope.createUser = function(event) {
+		 var request = 'hello/api';
+		 var dataObj = { user: $scope.user, name: $scope.name }
+		 console.log(dataObj);		 
+		 $http.post(request, dataObj)
+		      .then( function(user) {
+		    	  console.log("user created" + user.data + "/" + $scope.users);
+		    	  $scope.users.push(user.data);
+		      }) ;
+	 }
+  });
+</script>
+</head>
+<body>
+	<div ng-controller="Controller">
+	
+		<h1>Benutzer</h1>
+		
+		<h3>Benutzer anlegen</h3>
+		<form>
+			<table>
+				<tbody>
+					<tr>
+		    			<td> <label for="user">Benutzername</label> </td>
+		    			<td> <input id="user" ng-model="user"> </td>
+		    		</tr>
+						<td> <label for="name">Name</label> </td>
+						<td> <input id="name" ng-model="name"> </td>
+		    		<tr>
+						<td span="2"> <button ng-click="createUser()">Benutzer anlegen</button></td>
+		    		</tr>
+				</tbody>
+			</table>
+		</form>
+		
+		<h3>Vorhandene Benutzer</h3>
+		<table>
+			<thead>
+				<tr>
+					<th>Benutzername</th>
+					<th>Name</th>
+				</tr>
+			</thead>
+
+			<tbody>
+				<tr ng-repeat="user in users">
+					<td>{{user.user}}</td>
+					<td>{{user.name}} </td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</body>
+</html>
