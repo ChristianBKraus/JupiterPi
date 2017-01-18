@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="Banking">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JupiterPi</title>
+
+<script src="js/jquery.min.js"></script>
+<script src="js/angular.js"></script>
+<script>
+  var app = angular.module('Banking', []);
+  app.controller('Controller', function($scope, $http) {
+	 $scope.games = [];
+	 $scope.game = {};
+	 $scope.players = [];
+	 $scope.player = {};
+	 $scope.showEntry = true;
+	 
+	 $scope.getPlayers = function(id) {
+		   $http.get('banking/api/' + id + '/player/')
+		      .then( function(response) {
+		    	 $scope.players = response.data;
+		      });
+	 };
+	 $scope.selectGame = function(game) {
+			console.log("selected game: "); console.log(game);
+			$scope.game = game;
+			$scope.getPlayers($scope.game.id);
+			$scope.showEntry = false;
+		 };
+	 $scope.getGames = function() {
+	   $http.get('banking/api/')
+	      .then( function(response) {
+	    	 $scope.games = response.data;
+	    	 console.log('GET games: '); console.log($scope.games);
+	    	 if ($scope.games.length == 0) {
+	    		 $scope.game = {};
+	    	 } else {
+	    	   $scope.game = $scope.games[0];
+	    	   console.log('selected games: '); console.log($scope.game);
+	    	   $scope.getPlayers($scope.game.id);
+	    	 };
+	      });
+	 };
+	 $scope.getGames();
+	 
+	 $scope.selectPlayer = function(player) {
+		$scope.player = player; 
+		console.log("selected player:"); console.log($scope.player);
+	 };
+
+	 $scope.createPlayer = function(number, name) {
+		 if (name != null) {
+			 console.log("Create player " + number + ": " + name);
+			 var request = 'banking/api/player';
+			 var dataObj = { 'gameId': $scope.game.id, 'number': number, 'name': name};
+			 $http.post(request, dataObj)
+			      .then( function(data) {
+		    	 	 console.log("Player created: ");
+		    	 	 console.log(data.data);
+		    	  	$scope.players.push(data.data);
+		      }) ;
+		 }
+	 }
+	 $scope.createGame = function(event) {
+		 var request = 'banking/api';
+		 var dataObj = {  };
+		 $http.post(request, dataObj)
+		      .then( function(data) {
+		    	  console.log("game created" + data.data + "/" + $scope.games);
+		    	  $scope.game = data.data;
+		    	  $scope.games.push($scope.game.data);
+		    	  $scope.players = [];
+		    	  $scope.showEntry = false;
+		 		 $scope.createPlayer(1,$scope.player1);
+				 $scope.createPlayer(2,$scope.player2);
+				 $scope.createPlayer(3,$scope.player3);
+				 $scope.createPlayer(4,$scope.player4);
+		      }) ;
+	 };
+	 $scope.createTransaction = function(event) {
+		 var request = 'banking/api/transaction';
+		 var dataObj = { 'gameId': $scope.game.id, 
+				         'playerId': $scope.player.id,
+				         'type': $scope.type,
+				         'amount': $scope.amount,
+				         'partnerId': $scope.partnerId };
+		 console.log(dataObj);
+		 $http.post(request, dataObj)
+		      .then( function(data) {
+		    	  console.log("transaction created:");
+		    	  console.log(data.data);
+				 $scope.getPlayers($scope.game.id);
+		      }) ;
+	 };
+  });
+</script>
+</head>
+<body>
+	<div ng-controller="Controller">
+	
+		<h1>Monopoly</h1>
+		
+		<div ng-show="showEntry">
+<!-- -------  SPIEL ANLEGEN ---------------------------------------------------------- -->
+			<h3>Neues Spiel anlegen</h3>
+			<form>
+				<table>
+					<tr>
+						<td><lable for="Player1">Blauer Spieler</lable></td>
+						<td><input id"Player1" ng-model="player1"></td>
+					</tr><tr>
+						<td><lable for="Player2">Grüner Spieler</lable></td>
+						<td><input id"Player2" ng-model="player2"></td> 
+					</tr><tr>
+						<td><lable for="Player3">Gelber Spieler</lable></td>
+						<td><input id"Player3" ng-model="player3"></td> 
+					</tr><tr>
+						<td><lable for="Player4">Roter Spieler</lable></td>
+						<td><input id"Player4" ng-model="player4"></td>
+					</tr> 
+				</table>
+				<button ng-click="createGame()">anlegen</button>
+			</form>
+		
+<!-- -------  SPIEL auswählen ---------------------------------------------------------- -->
+			<h3>Vorhandenes Spiel auswählen</h3>
+			<table>
+				<thead>
+					<tr>
+						<th>Id</th>
+						<th>Datum</th>
+					</tr>
+				</thead>
+
+				<tbody>
+					<tr ng-repeat="game in games" ng-click="selectGame(game)">
+						<td>{{game.id}}</td>
+						<td>{{game.createdAt}} </td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div ng-hide="showEntry">
+		
+<!-- -------  SPIELER ---------------------------------------------------------- -->		
+			<h3>Spieler</h3>
+			<table>
+				<thead>
+					<th> Nummer </th>
+					<th> Name </th>
+					<th> Bargeld </th>
+					<th> Besitz </th>
+				</thead>
+				<tr ng-repeat="player in players" ng-click="selectPlayer(player)">
+					<td> {{player.number}} </td>
+					<td> {{player.name}} </td>
+					<td> {{player.amount}} </td>
+					<td> {{player.capital}} </td>
+				</tr>
+			</table>
+			
+<!-- -------  Transaktion ---------------------------------------------------------- -->
+			<div ng-show="player.id > 0">
+			<h3>Transaktion für Spieler {{player.name}}</h3>
+			<table>
+				<tr><td>
+					<table>
+						<tr><td ng-click="type = 'P'">Bezahlen</td></tr>				
+						<tr><td ng-click="type = 'B'">Kaufen</td></tr>				
+						<tr><td ng-click="type = 'T'">Überweisen</td></tr>				
+						<tr><td ng-click="type = 'H'">Hypothek</td></tr>				
+					</table>
+				</td><td>
+					<label for="Amount">Betrag </label> <input id="Amount" ng-model="amount"> K
+				</td><td ng-show="type == 'T'">
+					<label for="Partner"> Partner </label> <input id="Partner" ng-model="partnerId">
+				</td><td>
+					<button ng-click="createTransaction()"> Bezahlen </button>
+				</td></tr>
+			</table>
+			</div>
+		</div>
+		
+	</div>
+</body>
+</html>

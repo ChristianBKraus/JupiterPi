@@ -4,12 +4,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>jupiterpi</groupId>
-	<artifactId>jupiterpi</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>jupiterpi</name>
-	<description>JupiterPI WebServer</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -66,4 +63,7 @@
 	</build>
 
 
+	<artifactId>banking</artifactId>
+	<name>banking</name>
+	<description>Monopoly Online Banking</description>
 </project>

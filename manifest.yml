@@ -1,6 +1,6 @@
 ---
 applications:
-- name: JupiterPi
+- name: Banking
   memory: 1G
   path: target/jupiterpi-0.0.1-SNAPSHOT.jar
   buildpack: https://github.com/cloudfoundry/java-buildpack.git#v3.9
